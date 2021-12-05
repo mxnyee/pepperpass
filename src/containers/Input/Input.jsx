@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Input.css';
 
 const Input = ({ onChange }) => {
   const [vis, setVis] = useState(false);
+
+  useEffect(() => {
+    const hostname = window.location.hostname;
+    console.log({ hostname });
+  }, []);
 
   const handleChange = (e) => {
     const value = e.target.value;
