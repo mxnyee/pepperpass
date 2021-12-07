@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Popup.css';
 
-import { accountLogin } from '../../crypto/login';
+import { accountLogin, accountLogout } from '../../crypto/login';
 
 const Login = ({ onLogin }) => {
-  const [email, setEmail] = useState();
-  const [password, setPassword] = useState();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [text, setText] = useState('');
 
   const handleSubmit = async (e) => {
@@ -54,19 +54,50 @@ const Login = ({ onLogin }) => {
   );
 };
 
-const Account = ({ onLogout }) => {
-  return <button onClick={onLogout}>Log out</button>;
+const Account = ({ account: { email }, onLogout }) => {
+  return (
+    <div>
+      <p>{`Hello ${email}`}</p>
+      <button onClick={onLogout}>Log out</button>
+    </div>
+  );
 };
 
 const Popup = () => {
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(null);
+
+  const getUserInfo = async () => {
+    const storage = await chrome.storage.local.get('sessionStore');
+    const session = storage.sessionStore
+      ? JSON.parse(storage.sessionStore)
+      : null;
+    console.log('session storage:', session);
+    if (session?.email) {
+      setLoggedIn({ email: session.email });
+    }
+  };
+  useEffect(() => {
+    getUserInfo();
+  }, []);
   return (
     <div className="App">
       <h6 className="App-header">PepperPass</h6>
-      {loggedIn ? (
-        <Account onLogout={() => setLoggedIn(false)} />
+      {!!loggedIn ? (
+        <Account
+          account={loggedIn}
+          onLogout={async () => {
+            await accountLogout();
+            setLoggedIn(null);
+            const storage = await chrome.storage.local.get('sessionStore');
+            console.log('session storage after logout:', storage);
+          }}
+        />
       ) : (
-        <Login onLogin={() => setLoggedIn(true)} />
+        <Login
+          onLogin={() => {
+            getUserInfo();
+          }}
+        />
       )}
     </div>
   );
