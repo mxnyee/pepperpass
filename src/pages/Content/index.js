@@ -11,6 +11,7 @@ printLine("Using the 'printLine' function from the Print Module");
 const targetInput = document.querySelector('input[type="password"]');
 
 if (targetInput) {
+  // Assume that the login form contains username + password input only
   targetInput.setAttribute('data-pepperpass-password', '');
   targetInput
     .closest('form')
@@ -42,7 +43,6 @@ if (targetInput) {
   targetInput.parentNode.appendChild(root);
 
   const onChange = (pepper) => {
-    console.log('received value:', pepper);
     targetInput.value = pepper;
   };
 

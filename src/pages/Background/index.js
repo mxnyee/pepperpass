@@ -11,12 +11,9 @@ chrome.runtime.onMessage.addListener(async (msg, sender, response) => {
     const { hostname, user, secret, isNew } = msg.payload;
     if (isLoggedIn() && isNew) {
       // Write new account into storage
-      // (Ideally have a banner to ask user first)
       await addAccount(hostname, user, secret);
-      // addAccount(hostname, user, secret);
     }
     // Indicate async
-    // return true;
     response('received');
   }
 });

@@ -44,7 +44,8 @@ const decode = (bytes) => {
 const stringifyStorage = (str) => {
   // Keep typed arrays as arrays and not objects https://stackoverflow.com/a/62544282
   return JSON.stringify(str, (k, v) =>
-    ArrayBuffer.isView(v) ? Array.from(v) : v
+    // ArrayBuffer.isView(v) ? Array.from(v) : v
+    ArrayBuffer.isView(v) ? bytesToHex(v) : v
   );
 };
 
@@ -56,7 +57,8 @@ const parseStorage = (str) => {
       case 'key':
       case 'iv':
       case 'data':
-        typed[k] = new Uint8Array(v);
+        // typed[k] = new Uint8Array(v);
+        typed[k] = new Uint8Array(hexToBytes(v));
         break;
       default:
         typed[k] = v;
@@ -139,7 +141,6 @@ const getAccountRecord = async (email, password) => {
   const storage = await chrome.storage.local.get('dbStore');
   const account = storage.dbStore ? parseStorage(storage.dbStore)[email] : null;
   console.log('db storage:', account, storage.dbStore);
-  // TODO
   if (email === ACCOUNT_EMAIL && !account) {
     const key = await deriveKey(password);
     const dbStore = await initAccountRecords(email, key);
