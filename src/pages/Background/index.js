@@ -1,4 +1,4 @@
-import { isLoggedIn, addAccount } from '../../crypto/login';
+import { isLoggedIn, addAccount } from '../../crypto/account';
 
 console.log('This is the background page.');
 console.log('Put the background scripts here.');

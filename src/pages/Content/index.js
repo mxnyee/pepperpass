@@ -11,7 +11,7 @@ printLine("Using the 'printLine' function from the Print Module");
 const targetInput = document.querySelector('input[type="password"]');
 
 if (targetInput) {
-  // Assume that the login form contains username + password input only
+  // Assuming that the login form contains username + password input only
   targetInput.setAttribute('data-pepperpass-password', '');
   targetInput
     .closest('form')
@@ -31,8 +31,9 @@ if (targetInput) {
   checkboxLabel.innerHTML = 'Show password';
   checkboxLabel.htmlFor = 'togglevis';
   const div = document.createElement('div');
-  div.style.display = 'flex';
-  div.style.alignContent = 'center';
+  // div.style.display = 'flex';
+  // div.style.alignItems = 'center';
+  // div.style.justifyContent = 'center';
   div.appendChild(checkbox);
   div.appendChild(checkboxLabel);
   targetInput.parentNode.appendChild(div);

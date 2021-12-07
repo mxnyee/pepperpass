@@ -1,12 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './Input.css';
 
-import {
-  isLoggedIn,
-  getSiteSecret,
-  generateSecret,
-  constructPassword,
-} from '../../crypto/login';
+import { isLoggedIn, getSiteSecret } from '../../crypto/account';
+import { generateSecret, constructPassword } from '../../crypto/algs';
 
 const hostname = window.location.hostname;
 

@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import './Popup.css';
 
-import { accountLogin, accountLogout } from '../../crypto/login';
+import {
+  accountLogin,
+  accountLogout,
+  getUserInfo,
+  isLoggedIn,
+} from '../../crypto/account';
 
 const Login = ({ onLogin }) => {
   const [email, setEmail] = useState('');
@@ -47,6 +52,7 @@ const Login = ({ onLogin }) => {
         }}
       />
       <br />
+      <br />
       <button>Log in</button>
       <br />
       <span>{text}</span>
@@ -64,38 +70,32 @@ const Account = ({ account: { email }, onLogout }) => {
 };
 
 const Popup = () => {
-  const [loggedIn, setLoggedIn] = useState(null);
+  const [userInfo, setUserInfo] = useState(null);
 
-  const getUserInfo = async () => {
-    const storage = await chrome.storage.local.get('sessionStore');
-    const session = storage.sessionStore
-      ? JSON.parse(storage.sessionStore)
-      : null;
-    console.log('session storage:', session);
-    if (session?.email) {
-      setLoggedIn({ email: session.email });
+  const checkUser = async () => {
+    if (await isLoggedIn()) {
+      setUserInfo(await getUserInfo());
     }
   };
   useEffect(() => {
-    getUserInfo();
+    checkUser();
   }, []);
+
   return (
     <div className="App">
       <h6 className="App-header">PepperPass</h6>
-      {!!loggedIn ? (
+      {!!userInfo ? (
         <Account
-          account={loggedIn}
+          account={userInfo}
           onLogout={async () => {
             await accountLogout();
-            setLoggedIn(null);
-            const storage = await chrome.storage.local.get('sessionStore');
-            console.log('session storage after logout:', storage);
+            setUserInfo(null);
           }}
         />
       ) : (
         <Login
           onLogin={() => {
-            getUserInfo();
+            checkUser();
           }}
         />
       )}
