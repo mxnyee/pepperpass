@@ -6,10 +6,9 @@ import { generateSecret, constructPassword } from '../../crypto/algs';
 
 const hostname = window.location.hostname;
 
-const Input = ({ onChange }) => {
+const Input = ({ onChange, onToggleVis }) => {
   const [open, setOpen] = useState(false);
   const [accountInfo, setAccountInfo] = useState({});
-  const [vis, setVis] = useState(false);
 
   useEffect(() => {
     const userInput = document.querySelector('input[data-pepperpass-username]');
@@ -117,17 +116,13 @@ const Input = ({ onChange }) => {
         autoFocus
         className="pepper-input"
         id="pepper"
-        type={!vis ? 'password' : 'text'}
+        type="password"
         onChange={handleChange}
       />
-      {/* <div className="pepper-checkbox">
-        <input
-          type="checkbox"
-          id="toggle-pepper-vis"
-          onChange={() => setVis((prev) => !prev)}
-        />
-        <label htmlFor="toggle-pepper-vis">Show pepper</label>
-      </div> */}
+      <div className="checkbox">
+        <input type="checkbox" id="togglevis" onChange={onToggleVis} />
+        <label htmlFor="togglevis">Show password</label>
+      </div>
     </div>
   );
 };
