@@ -21,6 +21,10 @@ const Input = ({ onChange, onToggleVis }) => {
   useEffect(() => {
     const userInput = document.querySelector('input[data-pepperpass-username]');
     const changeListener = async (e) => {
+      if (!(await isLoggedIn())) {
+        close();
+        return;
+      }
       const siteUser = e.target.value;
       if (siteUser) {
         setAccountInfo((prev) => ({ ...prev, user: siteUser }));
@@ -61,21 +65,24 @@ const Input = ({ onChange, onToggleVis }) => {
       .closest('form');
     const submitListener = (e) => {
       setAccountInfo((info) => {
-        console.log('sending message:', hostname, info);
-        chrome.runtime.sendMessage(
-          {
-            from: 'input',
-            action: 'addAccount',
-            payload: {
-              hostname,
-              ...info,
-              event: e,
+        // If no pepper is provided, user is bypassing PepperPass so don't save anything
+        if (info.pepper) {
+          console.log('sending message:', hostname, info);
+          chrome.runtime.sendMessage(
+            {
+              from: 'input',
+              action: 'addAccount',
+              payload: {
+                hostname,
+                ...info,
+                event: e,
+              },
             },
-          },
-          (ack) => {
-            console.log('received ack:', ack);
-          }
-        );
+            (ack) => {
+              console.log('received ack:', ack);
+            }
+          );
+        }
         return info;
       });
     };
@@ -107,7 +114,7 @@ const Input = ({ onChange, onToggleVis }) => {
       }
     };
     handlePassword();
-  }, [accountInfo]);
+  }, [accountInfo.user, accountInfo.pepper]);
 
   if (!open) return null;
   const { user, isNew, pepper } = accountInfo;
