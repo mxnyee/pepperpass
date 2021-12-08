@@ -31,7 +31,7 @@ const parseStorage = (str) => {
 
 export const getStore = async (storeKey) => {
   const storage = await chrome.storage.local.get(storeKey);
-  const result = storage[storeKey] ? parseStorage(storage[storeKey]) : null;
+  const result = storage?.[storeKey] ? parseStorage(storage[storeKey]) : null;
   return result;
 };
 
@@ -43,4 +43,7 @@ export const setStore = async (storeKey, obj) => {
 
 export const removeStore = async (storeKey) => {
   await chrome.storage.local.remove(storeKey);
+  // DESTRUCTIVE
+  //   await chrome.storage.local.clear();
+  //   console.log('cleared storage:', await chrome.storage.local.get(null));
 };
