@@ -52,7 +52,7 @@ const getAccountRecord = async (email, password) => {
     const key = await deriveKey(password);
     const dbStore = await initAccountRecords(email, key);
     console.log('Initializing dbStore', dbStore);
-    await setStore(dbStore);
+    await setStore(DB_STORE_KEY, dbStore);
     return dbStore[email];
   }
   return account;

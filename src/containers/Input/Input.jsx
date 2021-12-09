@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './Input.css';
 
 import { isLoggedIn, getSiteSecret } from '../../crypto/account';
@@ -9,22 +9,23 @@ const hostname = window.location.hostname;
 const Input = ({ onChange, onToggleVis }) => {
   const [open, setOpen] = useState(false);
   const [accountInfo, setAccountInfo] = useState({});
+  const pepperInput = useRef();
+
+  const close = () => {
+    setOpen(false);
+    setAccountInfo(() => ({}));
+    onChange('');
+    onToggleVis('password');
+  };
 
   useEffect(() => {
     const userInput = document.querySelector('input[data-pepperpass-username]');
-    const changeListener = (e) => {
-      const value = e.target.value;
-      if (!value) {
-        setOpen(false);
-      }
-    };
-    const blurListener = async (e) => {
-      const siteUser = e.target.value;
+    const changeListener = async (e) => {
       if (!(await isLoggedIn())) {
-        setOpen(false);
-        setAccountInfo(() => ({}));
+        close();
         return;
       }
+      const siteUser = e.target.value;
       if (siteUser) {
         setAccountInfo((prev) => ({ ...prev, user: siteUser }));
         const siteSecret = await getSiteSecret(hostname, siteUser);
@@ -44,13 +45,16 @@ const Input = ({ onChange, onToggleVis }) => {
         console.log({ hostname, siteSecret });
         setOpen(true);
       } else {
-        setAccountInfo(() => ({}));
+        close();
       }
     };
-    userInput.addEventListener('change', changeListener);
+    const blurListener = (e) => {
+      pepperInput.current?.focus();
+    };
+    userInput.addEventListener('input', changeListener);
     userInput.addEventListener('blur', blurListener);
     return () => {
-      userInput.removeEventListener('change', changeListener);
+      userInput.removeEventListener('input', changeListener);
       userInput.removeEventListener('blur', blurListener);
     };
   }, []);
@@ -61,21 +65,24 @@ const Input = ({ onChange, onToggleVis }) => {
       .closest('form');
     const submitListener = (e) => {
       setAccountInfo((info) => {
-        console.log('sending message:', hostname, info);
-        chrome.runtime.sendMessage(
-          {
-            from: 'input',
-            action: 'addAccount',
-            payload: {
-              hostname,
-              ...info,
-              event: e,
+        // If no pepper is provided, user is bypassing PepperPass so don't save anything
+        if (info.pepper) {
+          console.log('sending message:', hostname, info);
+          chrome.runtime.sendMessage(
+            {
+              from: 'input',
+              action: 'addAccount',
+              payload: {
+                hostname,
+                ...info,
+                event: e,
+              },
             },
-          },
-          (ack) => {
-            console.log('received ack:', ack);
-          }
-        );
+            (ack) => {
+              console.log('received ack:', ack);
+            }
+          );
+        }
         return info;
       });
     };
@@ -85,42 +92,52 @@ const Input = ({ onChange, onToggleVis }) => {
     };
   }, []);
 
-  const handleChange = async (e) => {
-    const pepper = e.target.value;
-    if (!(await isLoggedIn())) {
-      setOpen(false);
-      setAccountInfo(() => ({}));
-      return;
-    }
-    if (accountInfo.secret) {
-      if (pepper) {
-        const password = await constructPassword(accountInfo.secret, pepper, 20);
-        console.log({ secret: accountInfo.secret, pepper, password });
-        onChange(password);
-      } else {
-        onChange('');
+  useEffect(() => {
+    const handlePassword = async () => {
+      if (!(await isLoggedIn())) {
+        close();
+        return;
       }
-    }
-  };
+      const { secret, pepper } = accountInfo;
+      if (secret) {
+        if (pepper) {
+          const password = await constructPassword(accountInfo.secret, pepper, 20);
+          console.log({
+            secret,
+            pepper,
+            password,
+          });
+          onChange(password);
+        } else {
+          onChange('');
+        }
+      }
+    };
+    handlePassword();
+  }, [accountInfo.user, accountInfo.pepper]);
 
   if (!open) return null;
+  const { user, isNew, pepper } = accountInfo;
   return (
     <div className="App">
       <h6 className="App-header">PepperPass</h6>
       <label className="pepper-label" htmlFor="pepper">
-        {accountInfo.isNew
-          ? `Enter your pepper:\nNew account for ${accountInfo.user}`
-          : `Enter your pepper:\nExisting account for ${accountInfo.user}`}
+        {isNew
+          ? `Enter your pepper:\nNew account for ${user}`
+          : `Enter your pepper:\nExisting account for ${user}`}
       </label>
       <input
-        autoFocus
         className="pepper-input"
         id="pepper"
         type="password"
-        onChange={handleChange}
+        ref={pepperInput}
+        value={pepper || ''}
+        onChange={(e) =>
+          setAccountInfo((prev) => ({ ...prev, pepper: e.target.value }))
+        }
       />
       <div className="checkbox">
-        <input type="checkbox" id="togglevis" onChange={onToggleVis} />
+        <input type="checkbox" id="togglevis" onChange={() => onToggleVis()} />
         <label htmlFor="togglevis">Show password</label>
       </div>
     </div>
