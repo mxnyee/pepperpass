@@ -101,7 +101,7 @@ const Input = ({ onChange, onToggleVis }) => {
       const { secret, pepper } = accountInfo;
       if (secret) {
         if (pepper) {
-          const password = await constructPassword(accountInfo.secret, pepper);
+          const password = await constructPassword(accountInfo.secret, pepper, 20);
           console.log({
             secret,
             pepper,

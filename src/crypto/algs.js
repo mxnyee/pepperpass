@@ -107,26 +107,21 @@ export const generateSecret = () => {
 };
 
 const charSet =
-  'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_';
-export const constructPassword = async (secret, pepper) => {
+  '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ|#!"/$%?&*;:`,.+=-_~';
+export const constructPassword = async (secret, pepper, passLen) => {
   // let hash = CryptoJS.SHA256(pepper + secret);
   // let passNum = BigInt("0x" + hash.toString(CryptoJS.enc.Hex));
   let hashed = await hash(pepper + secret);
   // TODO
-  return hashed;
   let passNum = BigInt('0x' + hashed);
   const base = BigInt(charSet.length);
   let digits = [];
-  let place = -1;
   let output = '';
   for (; passNum > 0; passNum = passNum / base) {
-    console.log(`charSet`[passNum % base], passNum % base);
-    digits.push(`charSet`[passNum % base]);
-    place = place + 1;
+    digits.push(charSet[passNum % base]);
   }
-  console.log({ digits, place });
-  for (; place >= 0; place--) {
-    output += digits[place];
+  for (let i = Math.min(passLen, digits.length) - 1; i >= 0; i--) {
+    output += digits[i];
   }
   return output;
 };
